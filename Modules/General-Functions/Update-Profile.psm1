@@ -36,7 +36,7 @@ function Update-Profile {
     param(
         [Parameter(Position = 0)]
         [string]
-        $SourcePath = (Join-Path -Path $env:USERPROFILE -ChildPath 'source\repos\Microsoft.PowerShell_profile.ps1'),
+        $SourcePath = (Join-Path -Path $(Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath 'Microsoft.PowerShell_profile.ps1'),
 
         [switch]
         $Force
@@ -45,6 +45,8 @@ function Update-Profile {
     # Resolve and validate the source path
     if (-not (Test-Path -LiteralPath $SourcePath)) {
         Write-Error "Source profile not found: '$SourcePath'"
+        Write-Host "We wanted to copy from $(Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent)"
+        
         return
     }
 
