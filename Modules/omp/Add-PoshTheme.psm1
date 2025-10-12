@@ -69,9 +69,8 @@ function Add-PoshTheme {
                 continue
             }
 
-            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($s)
-            $newFileName = "$baseName$desiredExt"
-            $dest = Join-Path -Path $targetDir -ChildPath $newFileName
+            [string] $baseName = [System.IO.Path]::GetFileName($s)
+            $dest = Join-Path -Path $targetDir -ChildPath $baseName
 
             $action = if ($Force) { 'Copy (overwrite)' } else { 'Copy' }
 
