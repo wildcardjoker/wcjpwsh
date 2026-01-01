@@ -11,7 +11,17 @@
 #   remains snappy.
 
 # Set variables.
-[string] $DefaultRepoPath = Join-Path -Path $env:USERPROFILE -ChildPath source -AdditionalChildPath repos
+
+# Default path for local git repositories; defaults to $HOME\source\repos
+# Use `$env:DefaultRepoPath` to override.
+if ($null -ne $env:DefaultRepoPath -and $env:DefaultRepoPath -ne "") {
+    [string] $DefaultRepoPath = $env:DefaultRepoPath
+}
+else { 
+    [string] $DefaultRepoPath = Join-Path -Path $env:USERPROFILE -ChildPath source -AdditionalChildPath repos
+}
+
+Write-Host "Default Repo Path: $DefaultRepoPath"
 
 # Create Repos path if it doesn't exist
 if (!(Test-Path -Path $DefaultRepoPath)) {
