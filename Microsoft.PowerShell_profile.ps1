@@ -40,12 +40,22 @@ else {
     # Enable git status integration
     $env:POSH_GIT_ENABLED = $true
     if (!(Test-Path $env:CustomThemeFileName)) {
-        $env:CustomThemeFileName = "$env:POSH_THEMES_PATH\jandedobbeleer.omp.json"
+        $env:CustomThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "jandedobbeleer.omp.json"
+        # Check if the fallback theme exists
+        if (!(Test-Path $env:CustomThemeFileName)) {
+            Write-Warning "Oh-My-Posh theme file not found: $env:CustomThemeFileName. OMP will not be launched."
+            $env:CustomThemeFileName = ""
+        }
+        else {
+            Write-Warning "Custom theme not found. Falling back to default theme."
+        }
     }
-    Write-Host "Loading Oh-My-Posh"
-    # Initialize Oh-My-Posh (if installed). We pipe to Invoke-Expression to
-    # allow the OMP initialization code to adjust the session prompt.
-    & oh-my-posh init pwsh --config="$env:CustomThemeFileName" | Invoke-Expression
+    if ($env:CustomThemeFileName -ne "") {
+        Write-Host "Using Oh-My-Posh theme: $env:CustomThemeFileName"
+        # Initialize Oh-My-Posh (if installed). We pipe to Invoke-Expression to
+        # allow the OMP initialization code to adjust the session prompt.
+        & oh-my-posh init pwsh --config="$env:CustomThemeFileName" | Invoke-Expression
+    }
 }
 
 # Import Terminal-Icons (optional)
