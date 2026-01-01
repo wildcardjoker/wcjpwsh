@@ -82,9 +82,6 @@ function Set-CustomPoshPrompt {
 
     begin {
         $desiredExt = '.omp.json'
-
-        # Destination custom theme file
-        $customFile = $env:CustomThemeFileName ?? (Join-Path -Path $env:POSH_THEMES_PATH -ChildPath 'customtheme.omp.json')
     }
 
     process {
@@ -108,10 +105,12 @@ function Set-CustomPoshPrompt {
         }
 
         $action = if ($Force) { 'Set (overwrite)' } else { 'Set' }
-        if ($PSCmdlet.ShouldProcess($source, "$action custom theme -> $customFile")) {
+        if ($PSCmdlet.ShouldProcess($source, "$action custom theme -> $source")) {
             try {
-                Copy-Item -Path $source -Destination $customFile -Force:$Force.IsPresent -ErrorAction Stop
-                Write-Verbose "Copied '$source' to '$customFile'"
+                # Save the custom theme file path to the environment variable
+                [System.Environment]::SetEnvironmentVariable('CustomThemeFileName', $source, 'User')
+                $env:CustomThemeFileName = $source # Sync for current session
+                Clear-Host
                 Write-Host -ForegroundColor Cyan "Reloading profile to apply new theme..."
                 . $PROFILE
             }
