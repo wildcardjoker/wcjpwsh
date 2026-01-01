@@ -55,26 +55,36 @@ if (-not (Test-Path -Path $env:POSH_THEMES_PATH)) {
     Write-Warning "You don't have Oh-My-Posh installed! If you use git, I highly recommend it!`nUse the command`n'winget install JanDeDobbeleer.OhMyPosh --source winget --scope machine --force' from an Admin PowerShell to install"
 }
 else {
-    Write-Host "Loading Oh-My-Posh"
-    $env:CustomThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "customtheme.omp.json"
-    # Enable git status integration
+      Write-Host "Loading Oh-My-Posh"
+  # Enable git status integration
     $env:POSH_GIT_ENABLED = $true
-    if (!(Test-Path $env:CustomThemeFileName)) {
-        $env:CustomThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "jandedobbeleer.omp.json"
+
+    # Check for custom theme file; if missing fall back to default
+    if ($null -eq $env:CustomThemeFileName -or $env:CustomThemeFileName -eq "") {
+        [string] $customThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "customtheme.omp.json"
+        Write-Host "Custom Posh theme not set; defaulting to $customThemeFileName"
+    }
+    else {
+        [string] $customThemeFileName = $env:CustomThemeFileName
+    }
+    # $env:CustomThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "customtheme.omp.json"
+    if (!(Test-Path $customThemeFileName)) {
+        $customThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "jandedobbeleer.omp.json"
         # Check if the fallback theme exists
-        if (!(Test-Path $env:CustomThemeFileName)) {
-            Write-Warning "Oh-My-Posh theme file not found: $env:CustomThemeFileName. OMP will not be launched."
-            $env:CustomThemeFileName = ""
+        if (!(Test-Path $customThemeFileName)) {
+            Write-Warning "Oh-My-Posh theme file not found: $customThemeFileName. OMP will not be launched."
+            $customThemeFileName = ""
         }
         else {
             Write-Warning "Custom theme not found. Falling back to default theme."
         }
     }
-    if ($env:CustomThemeFileName -ne "") {
-        Write-Host "Using Oh-My-Posh theme: $env:CustomThemeFileName"
+    if ($customThemeFileName -ne "") {
+        [string] $themeName = [System.IO.Path]::GetFileName($customThemeFileName) -replace '\.omp\.json$', ''
+        Write-Host "Using Oh-My-Posh theme: $themeName"
         # Initialize Oh-My-Posh (if installed). We pipe to Invoke-Expression to
         # allow the OMP initialization code to adjust the session prompt.
-        & oh-my-posh init pwsh --config="$env:CustomThemeFileName" | Invoke-Expression
+        & oh-my-posh init pwsh --config="$customThemeFileName" | Invoke-Expression
     }
 }
 
