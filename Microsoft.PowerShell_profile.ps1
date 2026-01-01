@@ -11,7 +11,26 @@
 #   remains snappy.
 
 # Set variables.
-[string] $DefaultRepoPath = Join-Path -Path $env:USERPROFILE -ChildPath source -AdditionalChildPath repos
+
+# Default path for local git repositories; defaults to $HOME\source\repos
+# Use `$env:DefaultRepoPath` to override.
+if ($null -ne $env:DefaultRepoPath -and $env:DefaultRepoPath -ne "") {
+    [string] $DefaultRepoPath = $env:DefaultRepoPath
+}
+else { 
+    [string] $DefaultRepoPath = Join-Path -Path $env:USERPROFILE -ChildPath source -AdditionalChildPath repos
+}
+
+Write-Host "Default Repo Path: $DefaultRepoPath"
+
+# Default path for custom modules
+# Use `$env:CustomModulePath` to override.
+if ($null -ne $env:CustomModulePath -and $env:CustomModulePath -ne "") {
+    [string] $ModulePath = $env:CustomModulePath
+}
+else {
+    [string] $ModulePath = Join-Path -Path $DefaultRepoPath -ChildPath 'wcjpwsh\Modules'
+}
 
 # Create Repos path if it doesn't exist
 if (!(Test-Path -Path $DefaultRepoPath)) {
@@ -36,6 +55,7 @@ if (-not (Test-Path -Path $env:POSH_THEMES_PATH)) {
     Write-Warning "You don't have Oh-My-Posh installed! If you use git, I highly recommend it!`nUse the command`n'winget install JanDeDobbeleer.OhMyPosh --source winget --scope machine --force' from an Admin PowerShell to install"
 }
 else {
+    Write-Host "Loading Oh-My-Posh"
     $env:CustomThemeFileName = Join-Path -Path $env:POSH_THEMES_PATH -ChildPath "customtheme.omp.json"
     # Enable git status integration
     $env:POSH_GIT_ENABLED = $true
@@ -113,12 +133,11 @@ Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
 }
 
 # Import custom modules from the local `Modules` folder
-$modulePath = Join-Path -Path $env:USERPROFILE -ChildPath 'source\repos\wcjpwsh\Modules'
-Write-Host "Importing custom modules from $modulePath"
-if (Test-Path -Path $modulePath) {
+Write-Host "Importing custom modules from $ModulePath"
+if (Test-Path -Path $ModulePath) {
     # Import by manifest so nested modules are processed and exported members
     # are correctly registered.
-    $modules = Get-ChildItem -Path $modulePath -Filter *.psd1 -Recurse
+    $modules = Get-ChildItem -Path $ModulePath -Filter *.psd1 -Recurse
     foreach ($module in $modules) {
         Write-Host "Importing module $($module.BaseName)"
         try {
@@ -130,7 +149,7 @@ if (Test-Path -Path $modulePath) {
     }
 }
 else {
-    Write-Host "Modules path not found: $modulePath" -ForegroundColor Yellow
+    Write-Warning "Modules path not found: $ModulePath"
 }
 
 # Export $DefaultRepoPath to the global session and environment for use by other scripts
